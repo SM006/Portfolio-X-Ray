@@ -6,9 +6,11 @@ from analytics.data_loader import fetch_price_data
 
 from analytics.risk_analysis import (
     compute_asset_returns,
-    compute_portfolio_returns
+    compute_portfolio_returns,
+    identify_stress_periods,
+    compute_correlation_matrices,
+    stress_loss_attribution
 )
-
 
 st.title("Portfolio X-Ray")
 st.subheader("Enter your portfolio")
@@ -71,6 +73,9 @@ if st.session_state.portfolio:
 
                     asset_returns = compute_asset_returns(prices)
                     portfolio_returns = compute_portfolio_returns(asset_returns, weights)
+                    
+                    stress_dates=identify_stress_periods(portfolio_returns)
+                    normal_corr, stress_corr=compute_correlation_matrices(asset_returns, stress_dates)
 
                     st.subheader("Asset Returns (Preview)")
                     st.dataframe(asset_returns.head())
@@ -79,6 +84,21 @@ if st.session_state.portfolio:
                     st.dataframe(portfolio_returns.head())
 
                     st.success("Returns computed successfully")
+                    
+                    st.subheader("Correlation Matrix (Normal Periods)")
+                    st.dataframe(normal_corr)
+
+                    st.subheader("Correlation Matrix (Stress Periods)")
+                    st.dataframe(stress_corr)
+                    
+                    stress_contribution = stress_loss_attribution(
+                        asset_returns,
+                        weights,
+                        stress_dates
+                    )
+
+                    st.subheader("Stress Loss Attribution")
+                    st.dataframe(stress_contribution.rename("Total Stress Contribution"))
 
                 except Exception as e:
                     st.error(str(e))
