@@ -88,3 +88,27 @@ def stress_loss_attribution(
     stress_loss = contributions.sum()
 
     return stress_loss.sort_values()
+
+def rolling_horizon_returns(portfolio_returns: pd.Series, window: int) -> pd.Series:
+    rolling_returns = (
+        (1 + portfolio_returns)
+        .rolling(window)
+        .apply(lambda x: x.prod() - 1)
+        .dropna()
+    )
+    return rolling_returns
+
+def horizon_risk_summary(portfolio_returns: pd.Series, horizons: dict) -> pd.DataFrame:
+    rows = []
+
+    for label, window in horizons.items():
+        hr = rolling_horizon_returns(portfolio_returns, window)
+
+        rows.append({
+            "Horizon": label,
+            "Worst Return": hr.min(),
+            "Probability of Loss": (hr < 0).mean()
+        })
+
+    return pd.DataFrame(rows)
+

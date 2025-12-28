@@ -40,7 +40,7 @@ def fetch_price_data(
         else:
             raise ValueError("Neither Adjusted Close nor Close available")
 
-    prices = prices.dropna()
+    prices = prices.ffill().dropna()
 
     if prices.empty:
         raise ValueError("Price data is empty after cleaning")
