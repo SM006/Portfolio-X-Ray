@@ -48,15 +48,15 @@ def stress_loss_insight(stress_contribution):
         )
 
 def horizon_risk_insight(horizon_df):
-    short_loss_prob = horizon_df.loc[
-        horizon_df["Horizon"] == "6 Months",
-        "Probability of Loss"
-    ].values[0]
+    # Safely get values, defaulting to None if not present
+    short_term = horizon_df.loc[horizon_df["Horizon"] == "6 Months", "Probability of Loss"]
+    long_term = horizon_df.loc[horizon_df["Horizon"] == "3 Years", "Probability of Loss"]
+    
+    if short_term.empty or long_term.empty:
+        return "Insufficient historical data to compare short-term vs. long-term risk trends."
 
-    long_loss_prob = horizon_df.loc[
-        horizon_df["Horizon"] == "3 Years",
-        "Probability of Loss"
-    ].values[0]
+    short_loss_prob = short_term.values[0]
+    long_loss_prob = long_term.values[0]
 
     if long_loss_prob < short_loss_prob * 0.5:
         return (
