@@ -162,7 +162,7 @@ def display_portfolio_overview_tab():
         values="allocation_pct",
         title="Portfolio Allocation"
     )
-    st.plotly_chart(fig_alloc, use_container_width=True)
+    st.plotly_chart(fig_alloc)
     
     st.info(portfolio_overview_insight(portfolio_df))
 
@@ -212,7 +212,7 @@ def display_risk_analysis_tab():
         color_continuous_scale="RdBu"
     )
 
-    st.plotly_chart(fig_stress, width='stretch')
+    st.plotly_chart(fig_stress)
     
     stress_text = stress_loss_insight(results["stress_contribution"])
     st.info(stress_text)
@@ -251,7 +251,7 @@ def display_time_horizon_tab():
         title="Risk Across Investment Horizons"
     )
 
-    st.plotly_chart(fig_horizon, width='stretch')
+    st.plotly_chart(fig_horizon)
 
     horizon_text = horizon_risk_insight(horizon_df)
     st.info(horizon_text)
