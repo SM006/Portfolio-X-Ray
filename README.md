@@ -30,7 +30,7 @@ $$
 R_{i,t} = \frac{P_{i,t} - P_{i,t-1}}{P_{i,t-1}}
 $$
 
-*Where $R_{i,t}$ is the return of asset $i$ at time $t$, and $P$ is the Adjusted Close price.*
+Where $R_{i,t}$ is the return of asset $i$ at time $t$, and $P$ is the Adjusted Close price.
 
 ### Portfolio Weights
 Weights are derived from the current invested amounts provided by the user.
@@ -39,7 +39,7 @@ $$
 w_i = \frac{A_i}{\sum_{j=1}^{N} A_j}
 $$
 
-*Where $w_i$ is the weight of asset $i$, and $A_i$ is the dollar amount invested.*
+Where $w_i$ is the weight of asset $i$, and $A_i$ is the dollar amount invested.
 
 ### Portfolio Returns
 The daily return of the total portfolio is the weighted sum of individual asset returns.
@@ -48,7 +48,7 @@ $$
 R_{p,t} = \sum_{i=1}^{N} w_i \cdot R_{i,t}
 $$
 
-*This assumes daily rebalancing to fixed weights for the purpose of historical analysis, a standard approximation in risk modeling.*
+This assumes daily rebalancing to fixed weights for the purpose of historical analysis, a standard approximation in risk modeling.
 
 ### Correlation (Pearson)
 Measures the linear relationship between two assets.
@@ -57,7 +57,7 @@ $$
 \rho_{i,j} = \frac{\text{Cov}(R_i, R_j)}{\sigma_i \cdot \sigma_j}
 $$
 
-*Where $\text{Cov}$ is covariance and $\sigma$ is standard deviation. High correlation implies assets move together.*
+Where $\text{Cov}$ is covariance and $\sigma$ is standard deviation. High correlation implies assets move together.
 
 ### Stress Scenario Definition
 We define "Stress Days" as the trading days falling in the bottom $q$-th percentile (e.g., bottom 5%) of the portfolio's historical return distribution.
@@ -66,11 +66,11 @@ $$
 t \in S \iff R_{p,t} \le Q_q(R_p)
 $$
 
-*Where $S$ is the set of stress days and $Q_q$ is the quantile function.*
+Where $S$ is the set of stress days and $Q_q$ is the quantile function.
 
 ### Stress Correlation
 This is the Pearson correlation coefficient $\rho_{i,j}$ computed **only** using data points $t \in S$.
-*Why: Assets often become more correlated during crashes (contagion), negating diversification benefits. Comparing Normal vs. Stress correlation reveals this risk.*
+Why: Assets often become more correlated during crashes (contagion), negating diversification benefits. Comparing Normal vs. Stress correlation reveals this risk.
 
 ### Stress Loss Attribution
 Calculates how much each asset contributed to the total portfolio decline during stress periods.
@@ -83,7 +83,7 @@ $$
 \text{StressLoss}_i = \sum_{t \in S} C_{i,t}
 $$
 
-*This identifies the specific drivers of drawdown, regardless of the asset's volatility.*
+This identifies the specific drivers of drawdown, regardless of the asset's volatility.
 
 ### Rolling Holding-Period Returns
 We simulate purchasing the portfolio on every possible day in history and holding it for $H$ days.
@@ -92,7 +92,7 @@ $$
 R_{p,t}(H) = \left( \prod_{k=0}^{H-1} (1 + R_{p,t-k}) \right) - 1
 $$
 
-*This generates a distribution of realized returns for a specific investment horizon.*
+This generates a distribution of realized returns for a specific investment horizon.
 
 ### Probability of Loss
 The likelihood of losing money if the portfolio is held for $H$ days, based on historical frequency.
@@ -101,7 +101,7 @@ $$
 P(\text{loss}) = \frac{\text{count}(R(H) < 0)}{\text{total observations}}
 $$
 
-*Showcases how risk diminishes as the investment horizon lengthens.*
+Showcases how risk diminishes as the investment horizon lengthens.
 
 ### Worst-Case Return
 The absolute minimum return observed for a given holding period $H$.
@@ -110,7 +110,7 @@ $$
 \text{Worst}(H) = \min(R(H))
 $$
 
-*Represents the "historical maximum drawdown" for a fixed time window.*
+Represents the "historical maximum drawdown" for a fixed time window.
 
 ## 5. Visualizations
 The application utilizes **Plotly** for interactive, financial-grade charts:
