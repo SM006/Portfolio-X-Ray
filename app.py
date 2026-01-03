@@ -41,6 +41,11 @@ def load_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
+def display_explanation(title, content):
+    """Helper to display educational content in an expander."""
+    with st.expander(f"📚 What does this mean? ({title})"):
+        st.markdown(f"<small>{content}</small>", unsafe_allow_html=True)
+
 # =============================================================================
 # Main App
 # =============================================================================
@@ -52,7 +57,9 @@ TIME_HORIZONS = {
     "1 Month": 21,
     "6 Months": 126,
     "1 Year": 252,
-    "3 Years": 756
+    "3 Years": 756,
+    "5 Years": 1260,
+    "10 Years": 2520
 }
 
 # =============================================================================
@@ -338,6 +345,11 @@ def display_portfolio_overview_tab():
     st.subheader("Portfolio Distribution")
     st.dataframe(portfolio_df)
 
+    display_explanation(
+        "Portfolio Allocation",
+        "**Diversification** is key to risk management. Ideally, you want to spread your investments across different asset classes (Stocks, Gold, Bonds) to reduce the impact of any single asset crashing. <br><br>This chart shows how your money is currently divided."
+    )
+
     # Add allocation pie chart
     fig_alloc = px.pie(
         portfolio_df,
@@ -383,14 +395,47 @@ def display_risk_analysis_tab():
     st.markdown('<div class="section-header">Correlation Analysis</div>', unsafe_allow_html=True)
     st.markdown("How assets behave during normal vs. stress periods")
 
+    display_explanation(
+        "Correlation Heatmaps",
+        "**Correlation** measures how two assets move in relation to each other:<br>"
+        "• <strong>+1.0 (Blue)</strong>: They move perfectly together. If one goes up, the other goes up.<br>"
+        "• <strong>-1.0 (Red)</strong>: They move in opposite directions. If one goes up, the other goes down.<br><br>"
+        "<strong>Why compare Normal vs. Stress?</strong><br>"
+        "In a crash, assets often start moving together (correlation increases), which breaks your diversification when you need it most. "
+        "You want assets that stay distinct (or move oppositely) even during market stress."
+    )
+
+    def create_heatmap(corr_df, title):
+        fig = px.imshow(
+            corr_df,
+            text_auto=".2f",
+            aspect="auto",
+            color_continuous_scale="RdBu",
+            zmin=-1,
+            zmax=1,
+            title=title,
+            labels=dict(color="Correlation")
+        )
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(t=40, b=0, l=0, r=0),
+            title_font_size=16
+        )
+        return fig
+
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("**Normal Market Conditions**")
-        st.dataframe(results["normal_corr"], use_container_width=True)
+        st.plotly_chart(
+            create_heatmap(results["normal_corr"], "Normal Market Conditions"), 
+            use_container_width=True
+        )
 
     with col2:
-        st.markdown("**Stress Market Conditions**")
-        st.dataframe(results["stress_corr"], use_container_width=True)
+        st.plotly_chart(
+            create_heatmap(results["stress_corr"], "Stress Market Conditions"), 
+            use_container_width=True
+        )
 
     # Correlation insights
     insight = correlation_insight(results["normal_corr"], results["stress_corr"])
@@ -399,6 +444,13 @@ def display_risk_analysis_tab():
     # Stress loss attribution section
     st.markdown('<div class="section-header">Stress Loss Attribution</div>', unsafe_allow_html=True)
     st.markdown("Which assets contribute most to losses during market stress")
+
+    display_explanation(
+        "Stress Loss Attribution",
+        "This chart answers: <strong>'If a major crash happened today, how much money would each asset lose me?'</strong><br><br>"
+        "• <strong>Red Bars (Drag)</strong>: These assets contribute to losses. The larger the bar, the more risk they add.<br>"
+        "• <strong>Blue/Green Bars (Safe Haven)</strong>: These assets actually gained value during the stress event, protecting your portfolio."
+    )
 
     st.dataframe(results["stress_contribution"].rename("Total Stress Contribution"), use_container_width=True)
 
@@ -435,6 +487,14 @@ def display_time_horizon_tab():
     st.markdown("## Time Horizon Risk Analysis")
     st.markdown("Understanding risk across different investment timeframes")
 
+    display_explanation(
+        "Time Horizon Risk",
+        "<strong>Time is your friend.</strong> This chart shows how the risk of losing money changes depending on how long you hold the investment.<br><br>"
+        "• <strong>Probability of Loss</strong>: The chance that you will lose money over that period.<br>"
+        "• <strong>Worst  Return</strong>: The worst-case scenario return historically.<br><br>"
+        "Typically, as you extend your time horizon (e.g., from 1 Month to 5 Years), the probability of loss drops significantly. This is called **Time Diversification**."
+    )
+
     available_days = len(portfolio_returns)
     filtered_horizons = {k: v for k, v in TIME_HORIZONS.items() if v < available_days}
 
@@ -447,41 +507,70 @@ def display_time_horizon_tab():
     horizon_df = horizon_risk_summary(portfolio_returns, filtered_horizons)
     st.dataframe(horizon_df, use_container_width=True)
 
-    # Create horizon risk chart
+    # Create horizon risk chart (Multi-Line Chart)
     st.markdown('<div class="section-header">Risk Visualization</div>', unsafe_allow_html=True)
-    horizon_plot_df = horizon_df.melt(
-        id_vars="Horizon",
-        value_vars=["Worst Return", "Probability of Loss"],
-        var_name="Metric",
-        value_name="Value"
-    )
+    
+    # Sort horizons by duration for correct x-axis ordering
+    horizon_df["Days"] = horizon_df["Horizon"].map(TIME_HORIZONS)
+    horizon_df = horizon_df.sort_values("Days")
 
-    fig_horizon = px.bar(
-        horizon_plot_df,
+    # Chart 1: Probability of Loss (Line Chart)
+    st.subheader("1. Likelihood of Risk")
+    st.markdown("What are the chances I lose money?")
+    
+    fig_prob = px.line(
+        horizon_df,
         x="Horizon",
-        y="Value",
-        color="Metric",
-        barmode="group",
-        title="Risk Across Investment Horizons",
-        color_discrete_map={
-            "Worst Return": "#ff6b6b",
-            "Probability of Loss": "#4ecdc4"
-        }
+        y="Probability of Loss",
+        markers=True,
+        title="Probability of Loss (%)",
+        labels={"Probability of Loss": "Probability (%)"}
     )
-    fig_horizon.update_layout(
+    fig_prob.update_traces(line_color="#4ecdc4", line_width=4, marker_size=10)
+    fig_prob.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        ),
-        xaxis_title=None
+        yaxis_title="Probability (%)",
+        xaxis_title=None,
+        xaxis=dict(
+             categoryorder="array",
+             categoryarray=horizon_df["Horizon"].tolist()
+        )
     )
+    st.plotly_chart(fig_prob, use_container_width=True)
 
-    st.plotly_chart(fig_horizon, use_container_width=True)
+    # Chart 2: Worst Case Return (Bar Chart)
+    st.subheader("2. Magnitude of Risk")
+    st.markdown("How much could I lose in a worst-case scenario?")
+
+    fig_worst = px.bar(
+        horizon_df,
+        x="Horizon",
+        y="Worst Return",
+        title="Worst Historical Return (%)",
+        text_auto=".1f",
+        labels={"Worst Return": "Return (%)"}
+    )
+    fig_worst.update_traces(marker_color="#ff6b6b")
+    fig_worst.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        yaxis_title="Return (%)",
+        xaxis_title=None,
+        xaxis=dict(
+             categoryorder="array",
+             categoryarray=horizon_df["Horizon"].tolist()
+        )
+    )
+    st.plotly_chart(fig_worst, use_container_width=True)
+
+    display_explanation(
+        "Time Horizon Analysis",
+        "We split this into two simple questions:<br><br>"
+        "<strong>1. Likelihood (Teal Line)</strong>: The chance of seeing <em>any</em> loss drops as you hold longer.<br>"
+        "<strong>2. Magnitude (Red Bars)</strong>: The worst crash relative to that holding period. <br><br>"
+        "Together, they show that while short-term crashes can be deep (Red Bars), staying invested significantly reduces the chance of actually realizing a loss (Teal Line)."
+    )
 
     # Insights
     st.markdown('<div class="section-header">Key Insights</div>', unsafe_allow_html=True)

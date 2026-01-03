@@ -120,23 +120,31 @@ The application utilizes **Plotly** for interactive, financial-grade charts:
 2.  **Correlation Heatmaps (Comparison)**:
     *   Displays two side-by-side matrices: one for full-history correlation and one for **Stress Correlation**.
     *   Highlights "breakdowns" where separate assets suddenly lockstep during crashes.
+    *   Uses a diverging Red-Blue scale with fixed range [-1, 1] for clear interpretation.
 3.  **Stress Loss Attribution (Bar Chart)**:
     *   Quantifies exactly how much money each asset theoretically cost the portfolio during defined stress events.
     *   Distinguishes between "safe havens" (positive bars) and "drag" contributors (negative bars).
-4.  **Time-Horizon Risk Analysis (Multi-Line Chart)**:
-    *   Plots "Probability of Loss" and "Worst Case Return" against holding periods (1 month to 10 years).
-    *   Graphically demonstrates the "time diversification" effect.
+4.  **Time-Horizon Risk Analysis (Split View)**:
+    *   **Likelihood of Risk (Line Chart)**: Plots the "Probability of Loss" over time, demonstrating how risk drops as holding period increases.
+    *   **Magnitude of Risk (Bar Chart)**: Plots the "Worst Case Return" (Max Drawdown) for each holding period.
+    *   Includes 5-Year and 10-Year horizons for long-term analysis.
 
-## 6. Key Insights Generated
+## 6. User-Centric Features
+To ensure accessibility for non-experts, the application includes:
+*   **"What does this mean?" Expanders**: Contextual help sections for every chart explaining complex financial terms (Correlation, Drawdown, etc.) in simple English.
+*   **Automated Insights**: Dynamically generated bullet points that highlight key takeaways like "Concentration Risk" or "Equity-Heaviness" using bold text for readability.
+*   **Clear Interpretations**: Charts are designed to answer specific user questions (e.g., "What are the chances I lose money?") rather than just showing raw data.
+
+## 7. Key Insights Generated
 *   **Diversification Quality**: Is the portfolio actually diverse, or just a collection of different tickers that move identically?
 *   **Concentration Risk**: Does a single asset dominate the downside risk, even if its weight implies otherwise?
 *   **Time-Dependent Risk**: How long must an investor hold this specific mix of assets to statistically minimize the chance of a negative return?
 *   **Regime Sensitivity**: How does the portfolio behave specifically during market shocks (Left-Tail events)?
 
-## 7. Tech Stack
+## 8. Tech Stack
 *   **Language**: Python 3.10+
 *   **Data Processing**: Pandas, NumPy
-*   **Visualization**: Plotly Graph Objects
+*   **Visualization**: Plotly Graph Objects, Plotly Express
 *   **Data Sourcing**: Yahoo Finance (`yfinance`)
 *   **Web Framework**: Streamlit
 
